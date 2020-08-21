@@ -44,7 +44,15 @@ class IntrospectionController extends Controller
         // Check token payload jti in DB, if present return result
         $access_token_value = DB::table('oauth_access_tokens')->find($tokenPayload['jti']);
 
+        // Check if access token id is not in DB
         if(count((array)$access_token_value) == 0) {
+            return response()->json([
+                'error' => 'invalid_request',
+            ], 400);
+        }
+
+        // Compare client_id from fhir server and client_id in access_token DB doesn't match
+        if($client_id != $access_token_value->client_id) {
             return response()->json([
                 'error' => 'invalid_request',
             ], 400);

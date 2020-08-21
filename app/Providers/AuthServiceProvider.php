@@ -29,6 +29,10 @@ class AuthServiceProvider extends ServiceProvider
         //
         Passport::routes();
 
+        Passport::setDefaultScope([
+            'user/*.read',
+        ]);
+
         Passport::tokensCan([
             'user/*.read' => 'Read all resources.',
         ]);
