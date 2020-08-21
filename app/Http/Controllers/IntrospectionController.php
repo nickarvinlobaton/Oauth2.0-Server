@@ -16,6 +16,19 @@ class IntrospectionController extends Controller
         // bool variable to determine if token is active
         $active = false;
 
+        // Verify client_id and client_secret in DB
+        $client = DB::table('oauth_clients')->where([
+            ['id', '=', $client_id],
+            ['secret', '=', $client_secret],
+        ])->get()->toArray();
+
+        // Check if client id & secret is not in DB
+        if(count((array)$client) == 0) {
+            return response()->json([
+                'error' => 'invalid_request',
+            ], 400);
+        }
+
         // Decrypt access token
         $tokenParts = explode(".", $token);
         $tokenHeader = json_decode(base64_decode($tokenParts[0]), true);
@@ -28,7 +41,7 @@ class IntrospectionController extends Controller
             ], 400);
         }
 
-        // Check token payload jti in DB if present
+        // Check token payload jti in DB, if present return result
         $access_token_value = DB::table('oauth_access_tokens')->find($tokenPayload['jti']);
 
         if(count((array)$access_token_value) == 0) {
@@ -48,10 +61,6 @@ class IntrospectionController extends Controller
         $scope = str_replace(']', "", $scope);
         $scope = str_replace('"', "", $scope);
         $scope = stripslashes($scope);
-
-//        print($scope);
-
-//        print_r($access_token_value);
 
         return response()->json([
             'active' => $active,
